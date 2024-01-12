@@ -19,6 +19,16 @@ describe Redis::PooledClient do
     end
   end
 
+  it "cleans up correctly" do
+    client = Redis::PooledClient.new(pool_size: 100)
+    client.pool.start_all
+    client.pool.checkout
+
+    client.pool.size.should eq 100
+    client.close_all
+    client.pool.size.should eq 0
+  end
+
   it "passes other connection options to Redis instance" do
     redis1 = Redis::PooledClient.new(host: "localhost", port: 6379, database: 1)
     redis2 = Redis::PooledClient.new(host: "localhost", port: 6379, database: 2)

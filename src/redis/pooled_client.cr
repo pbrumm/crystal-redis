@@ -28,13 +28,26 @@ class Redis::PooledClient
   # * pool_timeout - the time to wait for a `Redis` instance to become available from the pool before dying with `Redis::PoolTimeoutError`.
   def initialize(*args, pool_size = 5, pool_timeout = 5.0, **args2)
     @pool = ConnectionPool(Redis).new(capacity: pool_size, timeout: pool_timeout) do
-      Redis.new(*args, **args2)
+      r : Redis? = nil
+      begin
+        r = Redis.new(*args, **args2)
+      rescue e : Redis::Error
+        begin
+          r.try(&.close)
+        rescue
+        end
+        raise e
+      end
     end
   end
 
   macro method_missing(call)
     # Delegates all Redis commands to a `Redis` instance from the connection pool.
     with_pool_connection { |conn| conn.{{call}} }
+  end
+
+  def close_all
+    @pool.close_all
   end
 
   # Executes the given block, passing it a Redis client from the connection pool.

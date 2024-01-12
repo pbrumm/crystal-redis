@@ -9,4 +9,5 @@ crystal: ">= 0.36.1"
 dependencies:
   pool:
     github: pbrumm/pool
-    branch: bug/crash_in_high_concurrency_due_to_object_moves
+    branch: bug/fix_clean_closing_of_all_connections
+    #path: "../pool"
